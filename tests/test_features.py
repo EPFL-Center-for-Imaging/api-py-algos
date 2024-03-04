@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 from geojson import Feature
 
-from app.features import get_features_from_segm_mask
+from algos.compute_features import get_features_from_segm_mask
 
 
 @pytest.fixture()

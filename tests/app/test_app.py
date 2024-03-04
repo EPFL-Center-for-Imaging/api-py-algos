@@ -10,4 +10,4 @@ def test_welcome():
     assert response.status_code == 200
     assert response.json() == {"message": "hello"}
 
-# Add tests specific to the available algos ?
+# TODO: Add toy algorithm for testing

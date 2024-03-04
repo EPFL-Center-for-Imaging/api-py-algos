@@ -18,9 +18,9 @@ def get_features_from_segm_mask(segm_mask: np.ndarray) -> [geojson.Feature]:
     indices = np.unique(segm_mask)
     indices = np.delete(indices, indices == 0)  # remove background
     if indices.size > 0:
-        for i in np.nditer(indices):
+        for i in indices.tolist():
             geom = _mask_to_geometry(np.asarray(segm_mask == i))
-            features.append(Feature(geometry=geom, properties={"label": "object"}))
+            features.append(Feature(geometry=geom, properties={"Detection ID": i}))
     return features
 
 

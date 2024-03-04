@@ -19,7 +19,8 @@ AVAILABLE_ALGOS = [
           "type": "int", "default_value": 128}
          # #  Select channel for Fluo images ?
      ],
-     },
+     "output_endpoints": ["mask", "features"]
+     }
 ]
 
 

@@ -4,12 +4,10 @@ import warnings
 import matplotlib.pyplot as plt
 import numpy as np
 from fastapi import FastAPI, HTTPException
-from geojson import Feature
 from pydantic import BaseModel
 
 from algos import (AVAILABLE_ALGOS, get_required_algo_params, get_algo_info, get_algo_method)
 from app.encoding import encode_image, decode_image
-from app.features import get_features_from_segm_mask
 
 app = FastAPI(title="Python algos app",
               version="0.1.0")
@@ -42,8 +40,7 @@ class ServerData:
         self._selected_algo = None
         self._algo_params = {}
         self._image_array = None
-        self._result_array = None
-        self._result_features = []
+        self._result = {}
 
     @property
     def selected_algo_name(self) -> str | None:
@@ -78,27 +75,18 @@ class ServerData:
         self._image_array = data
 
     @property
-    def result_array(self) -> np.ndarray | None:
-        return self._result_array
+    def result(self) -> {}:
+        return self._result
 
-    @result_array.setter
-    def result_array(self, res: np.ndarray):
-        self._result_array = res
-
-    @property
-    def result_features(self) -> []:
-        return self._result_features
-
-    @result_features.setter
-    def result_features(self, feats: [Feature]):
-        self._result_features = feats
+    @result.setter
+    def result(self, res: {}):
+        self._result = res
 
     def clear_all(self):
         self._selected_algo = None
         self._algo_params = {}
         self._image_array = None
-        self._result_array = None
-        self._result_features = []
+        self.result = {}
 
 
 # Available algos names & required parameters
@@ -135,7 +123,6 @@ def set_algo_params(algo_name: str, params: Parameters) -> {}:
 
 
 def _check_algo_params(algo_name: str, input_algo_params: {}) -> bool:
-    # TODO: Replace warnings with HTTPException ?
     """ Check that the input_algo_params contain all the required algo parameters for the given algo_name
     Returns True if all the required parameters are set """
     if algo_name not in available_algo_names:
@@ -202,14 +189,13 @@ def process_data(algo_name: str):
     if not _check_algo_params(algo_name, server_data.algo_params):
         raise HTTPException(status_code=400, detail=f"Incorrect algorithm parameters for {algo_name}")
 
-    server_data.result_array = _run_algo(algo_method, server_data.image_array, **server_data.algo_params)
-    if server_data.result_array is None:
+    server_data.result = _run_algo(algo_method, server_data.image_array, **server_data.algo_params)
+    if server_data.result is None:
         raise HTTPException(500)
-    server_data.result_features = get_features_from_segm_mask(server_data.result_array)
 
 
 @app.delete("/image")
-def delete_image():
+def delete_data():
     """ Delete all the information related to the image & result on the server """
     server_data.clear_all()
 
@@ -223,37 +209,50 @@ async def send_image(image: ImageData):
         raise HTTPException(415, e)  # Unsupported Media Type
 
 
-@app.get("/image/{algo_name}/result")
-async def get_result_image(algo_name: str) -> {}:
+@app.get("/image/{algo_name}/result/mask")
+async def get_result_mask(algo_name: str) -> {}:
     """ Get the computed result of the image processing with the given algo_name
-    as an image in a Base64 encoded string """
+    as a mask in a Base64 encoded string """
     if server_data.selected_algo_name != algo_name:
         raise HTTPException(404)
-    if server_data.result_array is None:
+    if not server_data.result or server_data.result.get("mask") is None:
         raise HTTPException(404)
-    return {"data": encode_image(server_data.result_array)}
+    return {"mask": encode_image(server_data.result.get("mask"))}
 
 
-@app.get("/image/{algo_name}/result_geojson")
-async def get_result_geojson(algo_name: str) -> {}:
+@app.get("/image/{algo_name}/result/features")
+async def get_result_features(algo_name: str) -> {}:
     """ Get the computed result of the image processing with the given algo_name
     as a list of geojson.Feature """
     if server_data.selected_algo_name != algo_name:
         raise HTTPException(404)
-    if server_data.result_array is None:
+    if not server_data.result or server_data.result.get("features") is None:
         raise HTTPException(404)
-    return {"features": server_data.result_features}
+
+    try:
+        save_result_plot()
+    except Exception as e:
+        warnings.warn(f"Could not save result plot on server ({e})")
+
+    return {"features": server_data.result.get("features")}
 
 
-def save_result_plot():
+def save_result_plot(path_to_result="result.png"):
     """ Plot of the original image and its computed result - to check result on server side """
     plt.figure()
     plt.suptitle("SERVER")
     plt.subplot(1, 2, 1)
     if server_data.image_array is not None:
         plt.imshow(server_data.image_array)
+        if server_data.result and server_data.result.get("features") is not None:
+            for feature in server_data.result.get("features"):
+                coordinates = feature.geometry.get("coordinates")
+                if coordinates is not None and np.ndim(coordinates) == 3:
+                    x = [coord[0] for coord in coordinates[0]]
+                    y = [coord[1] for coord in coordinates[0]]
+                    plt.plot(x, y)
     plt.subplot(1, 2, 2)
-    if server_data.result_array is not None:
-        plt.imshow(server_data.result_array)
-    plt.savefig("result.png")
+    if server_data.result and server_data.result.get("mask") is not None:
+        plt.imshow(server_data.result.get("mask"))
+    plt.savefig(path_to_result)
     plt.close()

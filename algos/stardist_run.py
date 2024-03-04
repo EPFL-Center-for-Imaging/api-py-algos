@@ -2,8 +2,10 @@ import numpy as np
 from csbdeep.utils import normalize
 from stardist.models import StarDist2D
 
+from .compute_features import get_features_from_segm_mask
 
-def run_stardist(data: np.ndarray, **kwargs) -> np.ndarray:
+
+def run_stardist(data: np.ndarray, **kwargs) -> {}:
     if not isinstance(data, np.ndarray):
         raise TypeError(type(data))
 
@@ -26,4 +28,12 @@ def run_stardist(data: np.ndarray, **kwargs) -> np.ndarray:
         kwargs.pop("block_size")
         kwargs.pop("min_overlap")
         labels, polys = model.predict_instances(normalize(data), **kwargs)
-    return labels
+
+    # Compute the geojson.Feature for each object from the segmentation mask
+    features = get_features_from_segm_mask(labels)
+    # Add the detection probabilitiy to each feature (same indexing as the polys since it orginates from the segmentation mask indices in both cases)
+    probs = list(polys["prob"])
+    for prob, feature in zip(probs, features):
+        feature.properties.update({"Detection probability": float(prob)})
+
+    return {"mask": labels, "features": features}
