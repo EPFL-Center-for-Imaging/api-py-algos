@@ -3,7 +3,7 @@ import warnings
 
 import matplotlib.pyplot as plt
 import numpy as np
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Response, status
 from pydantic import BaseModel
 
 from algos import (AVAILABLE_ALGOS, get_required_algo_params, get_algo_info, get_algo_method)
@@ -104,21 +104,21 @@ def welcome() -> {}:
 def get_selected_algo_params(algo_name: str):
     """ Get the algorithm parameters by the user for the given algo_name """
     if server_data.selected_algo_name != algo_name:
-        raise HTTPException(404)
+        raise HTTPException(status.HTTP_404_NOT_FOUND)
     return server_data.algo_params
 
 
-@app.post("/image/{algo_name}/parameters")
+@app.post("/image/{algo_name}/parameters", status_code=status.HTTP_201_CREATED)
 def set_algo_params(algo_name: str, params: Parameters) -> {}:
     """ Set the parameters for the algo_name """
     try:
         server_data.selected_algo_name = algo_name
     except ValueError:
-        raise HTTPException(400, f"Unknown algorithm {algo_name}")
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, f"Unknown algorithm {algo_name}")
     try:
         server_data.algo_params = params.parameters
     except ValueError:
-        raise HTTPException(400, f"Incorrect algorithm parameters for {algo_name}")
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, f"Unexpected algorithm parameters for {algo_name}")
     return server_data.algo_params
 
 
@@ -142,28 +142,22 @@ def _check_algo_params(algo_name: str, input_algo_params: {}) -> bool:
     return True
 
 
-def _run_algo(algo_method, data: np.ndarray, **algo_parameters) -> {} or None:
+def _run_algo(algo_method, data: np.ndarray, **algo_parameters) -> {}:
     """ Run the given algo_method for the data with the algo_parameters """
-    try:
-        result = algo_method(data, **algo_parameters)
-        return result
-    except Exception:
-        traceback.print_exc()
-        return None
+    return algo_method(data, **algo_parameters)
 
 
 @app.get("/algos_names/")
 def read_algos_names() -> {}:
     """ Get the available algo names"""
-    response = {'algos_names': available_algo_names}
-    return response
+    return {'algos_names': available_algo_names}
 
 
 @app.get("/algos/{algo_name}/")
 def read_algo_info(algo_name: str):
     """ Get all the information for the given algo_name """
     if algo_name not in available_algo_names:
-        raise HTTPException(status_code=404, detail=f"Algorithm {algo_name} not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Algorithm {algo_name} not found")
     algo_info = get_algo_info(algo_name)
     return algo_info
 
@@ -172,41 +166,46 @@ def read_algo_info(algo_name: str):
 def read_algo_params(algo_name: str):
     """ Get the required parameters for the given algo_name """
     if algo_name not in available_algo_names:
-        raise HTTPException(status_code=404, detail=f"Algorithm {algo_name} not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Algorithm {algo_name} not found")
     rqd_algo_params = get_required_algo_params(algo_name)
     return {"parameters": rqd_algo_params}
 
 
-@app.post("/image/{algo_name}/result")
+@app.post("/image/{algo_name}/result", status_code=status.HTTP_201_CREATED)
 def process_data(algo_name: str):
     """ Process the image data with the given algo_name (the image data should be set &
     the algo parameters should be set) """
     if algo_name not in available_algo_names:
-        raise HTTPException(status_code=404, detail=f"Algorithm {algo_name} not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Algorithm {algo_name} not found")
     algo_method = get_algo_method(server_data.selected_algo_name)
     if algo_method is None:
-        raise HTTPException(status_code=404, detail=f"Algorithm implementation for {algo_name} not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"Algorithm implementation for {algo_name} not found")
     if not _check_algo_params(algo_name, server_data.algo_params):
-        raise HTTPException(status_code=400, detail=f"Incorrect algorithm parameters for {algo_name}")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"Incorrect algorithm parameters for {algo_name}")
+    try:
+        server_data.result = _run_algo(algo_method, server_data.image_array, **server_data.algo_params)
+    except Exception as e:
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, e)
+    return {"output_endpoints": list(server_data.result.keys())}
 
-    server_data.result = _run_algo(algo_method, server_data.image_array, **server_data.algo_params)
-    if server_data.result is None:
-        raise HTTPException(500)
 
-
-@app.delete("/image")
+@app.delete("/image", status_code=status.HTTP_204_NO_CONTENT)
 def delete_data():
     """ Delete all the information related to the image & result on the server """
     server_data.clear_all()
+    return
 
 
-@app.post("/image")
+@app.post("/image", status_code=status.HTTP_201_CREATED)
 async def send_image(image: ImageData):
     """ Send the image as a Base64 encoded string & save the decoded np.ndarray to the ServerData """
     try:
         server_data.image_array = decode_image(image.data)
-    except ValueError as e:
-        raise HTTPException(415, e)  # Unsupported Media Type
+    except ValueError as ve:
+        raise HTTPException(status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, ve)
+    return {"image_data_size": image.data.__sizeof__()}
 
 
 @app.get("/image/{algo_name}/result/mask")
@@ -214,9 +213,9 @@ async def get_result_mask(algo_name: str) -> {}:
     """ Get the computed result of the image processing with the given algo_name
     as a mask in a Base64 encoded string """
     if server_data.selected_algo_name != algo_name:
-        raise HTTPException(404)
+        raise HTTPException(status.HTTP_404_NOT_FOUND)
     if not server_data.result or server_data.result.get("mask") is None:
-        raise HTTPException(404)
+        raise HTTPException(status.HTTP_404_NOT_FOUND)
     return {"mask": encode_image(server_data.result.get("mask"))}
 
 
@@ -225,9 +224,9 @@ async def get_result_features(algo_name: str) -> {}:
     """ Get the computed result of the image processing with the given algo_name
     as a list of geojson.Feature """
     if server_data.selected_algo_name != algo_name:
-        raise HTTPException(404)
+        raise HTTPException(status.HTTP_404_NOT_FOUND)
     if not server_data.result or server_data.result.get("features") is None:
-        raise HTTPException(404)
+        raise HTTPException(status.HTTP_404_NOT_FOUND)
 
     try:
         save_result_plot()
