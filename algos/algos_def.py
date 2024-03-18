@@ -17,7 +17,6 @@ AVAILABLE_ALGOS = [
          {"name": "min_overlap", "display_name": "Tile overlap",
           "description": "Amount of guaranteed overlap between tiles (All predicted object instances should be smaller than this value!)",
           "type": "int", "default_value": 128}
-         # #  Select channel for Fluo images ?
      ],
      "output_endpoints": ["mask", "features"]
      }

@@ -1,9 +1,8 @@
-import traceback
 import warnings
 
 import matplotlib.pyplot as plt
 import numpy as np
-from fastapi import FastAPI, HTTPException, Response, status
+from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel
 
 from algos import (AVAILABLE_ALGOS, get_required_algo_params, get_algo_info, get_algo_method)
@@ -16,9 +15,9 @@ app = FastAPI(title="Python algos app",
 class Dimensions(BaseModel):
     width: int
     height: int
-    channels: int | None = None
-    depth: int | None = None
-    frames: int | None = None
+    channels: int or None = None
+    depth: int or None = None
+    frames: int or None = None
 
 
 class ImageData(BaseModel):
@@ -26,7 +25,7 @@ class ImageData(BaseModel):
 
 
 class Parameters(BaseModel):
-    parameters: dict | None = None
+    parameters: dict or None = None
 
 
 class Message(BaseModel):
@@ -43,7 +42,7 @@ class ServerData:
         self._result = {}
 
     @property
-    def selected_algo_name(self) -> str | None:
+    def selected_algo_name(self) -> str or None:
         return self._selected_algo
 
     @selected_algo_name.setter
@@ -67,7 +66,7 @@ class ServerData:
             raise ValueError(params)
 
     @property
-    def image_array(self) -> np.ndarray | None:
+    def image_array(self) -> np.ndarray or None:
         return self._image_array
 
     @image_array.setter

@@ -2,11 +2,10 @@
 
 ## Setup
 
-1. Create a Python 3.10 virtual environment (for Linux: `python -m venv path/to/venv_pyalgos`)
-2. Activate the virtual environment (for Linux: `source path/to/venv_pyalgos/bin/activate`)
-3. Install the required python packages for the app:
+1. Create a Python 3.9-3.11 virtual environment and activate it
+2. Install the required python packages for the app:
    `pip install -r requirements.txt`
-4. Then install the required packages for the selected algorithms, e.g. for the example algorithm Stardist, follow the
+3. Then install the required packages for the selected algorithms, e.g. for the example algorithm Stardist, follow the
    instructions from
    [here](https://github.com/stardist/stardist?tab=readme-ov-file#installation).
 
