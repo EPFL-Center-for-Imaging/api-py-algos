@@ -207,6 +207,17 @@ async def send_image(image: ImageData):
     return {"image_data_size": image.data.__sizeof__()}
 
 
+@app.get("/image/{algo_name}/result/image")
+async def get_result_image(algo_name: str) -> {}:
+    """ Get the computed result of the image processing with the given algo_name
+    as an image in a Base64 encoded string """
+    if server_data.selected_algo_name != algo_name:
+        raise HTTPException(status.HTTP_404_NOT_FOUND)
+    if not server_data.result or server_data.result.get("image") is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND)
+    return {"image": encode_image(server_data.result.get("image"))}
+
+
 @app.get("/image/{algo_name}/result/mask")
 async def get_result_mask(algo_name: str) -> {}:
     """ Get the computed result of the image processing with the given algo_name
