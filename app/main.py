@@ -12,6 +12,14 @@ app = FastAPI(title="Python algos app",
               version="0.1.0")
 
 
+class Message(BaseModel):
+    message: str
+
+
+class Parameters(BaseModel):
+    parameters: dict or None = None
+
+
 class Dimensions(BaseModel):
     width: int
     height: int
@@ -22,14 +30,7 @@ class Dimensions(BaseModel):
 
 class ImageData(BaseModel):
     data: str
-
-
-class Parameters(BaseModel):
-    parameters: dict or None = None
-
-
-class Message(BaseModel):
-    message: str
+    dimensions: Dimensions or None = None
 
 
 class ServerData:
