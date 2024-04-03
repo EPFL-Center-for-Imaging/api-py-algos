@@ -1,6 +1,5 @@
 import warnings
 
-import matplotlib.pyplot as plt
 import numpy as np
 from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel
@@ -238,31 +237,4 @@ async def get_result_features(algo_name: str) -> {}:
         raise HTTPException(status.HTTP_404_NOT_FOUND)
     if not server_data.result or server_data.result.get("features") is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND)
-
-    try:
-        save_result_plot()
-    except Exception as e:
-        warnings.warn(f"Could not save result plot on server ({e})")
-
     return {"features": server_data.result.get("features")}
-
-
-def save_result_plot(path_to_result="result.png"):
-    """ Plot of the original image and its computed result - to check result on server side """
-    plt.figure()
-    plt.suptitle("SERVER")
-    plt.subplot(1, 2, 1)
-    if server_data.image_array is not None:
-        plt.imshow(server_data.image_array)
-        if server_data.result and server_data.result.get("features") is not None:
-            for feature in server_data.result.get("features"):
-                coordinates = feature.geometry.get("coordinates")
-                if coordinates is not None and np.ndim(coordinates) == 3:
-                    x = [coord[0] for coord in coordinates[0]]
-                    y = [coord[1] for coord in coordinates[0]]
-                    plt.plot(x, y)
-    plt.subplot(1, 2, 2)
-    if server_data.result and server_data.result.get("mask") is not None:
-        plt.imshow(server_data.result.get("mask"))
-    plt.savefig(path_to_result)
-    plt.close()
