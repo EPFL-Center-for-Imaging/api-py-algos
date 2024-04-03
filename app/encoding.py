@@ -4,6 +4,9 @@ import io
 import numpy as np
 from PIL import Image
 
+# Remove the limit of the image size (for trusted data)
+Image.MAX_IMAGE_PIXELS = None
+
 
 def decode_image(b64data: str) -> np.ndarray or None:
     """
