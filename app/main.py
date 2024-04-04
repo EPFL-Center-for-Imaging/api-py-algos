@@ -186,7 +186,7 @@ def process_data(algo_name: str):
     try:
         server_data.result = _run_algo(algo_method, server_data.image_array, **server_data.algo_params)
     except Exception as e:
-        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, e)
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, str(e))
     return {"output_endpoints": list(server_data.result.keys())}
 
 
@@ -203,7 +203,12 @@ async def send_image(image: ImageData):
     try:
         server_data.image_array = decode_image(image.data)
     except ValueError as ve:
-        raise HTTPException(status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, ve)
+        raise HTTPException(status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, detail=str(ve))
+    except Exception as e:
+        # Generic exception returns a Bad Request response (implying that the client should modify its request)
+        # with the exception in the body of the response
+        print(str(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     return {"image_data_size": image.data.__sizeof__()}
 
 
