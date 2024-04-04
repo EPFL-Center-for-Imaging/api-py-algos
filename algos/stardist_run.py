@@ -34,6 +34,11 @@ def run_stardist(data: np.ndarray, **kwargs) -> {}:
     # Add the detection probabilitiy to each feature (same indexing as the polys since it orginates from the segmentation mask indices in both cases)
     probs = list(polys["prob"])
     for prob, feature in zip(probs, features):
-        feature.properties.update({"Detection probability": float(prob)})
+        feature.properties.update({
+            "Detection probability": float(prob)
+        })
+        # [Notes for QuPath extension]
+        # Can add measurements in QuPath similarly to the "Detection probability" (values should be a number - not a string)
+        # Can set a classification in QuPath by adding a "Classification" key with a string value (can be "Positive"/"Negative"/"1+"/"2+"/"3+" or anything else)
 
     return {"mask": labels, "features": features}
