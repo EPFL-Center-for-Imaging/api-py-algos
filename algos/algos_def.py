@@ -1,5 +1,23 @@
 AVAILABLE_ALGOS = [
-    {"id": 1, "name": "stardist", "description": "Object detection with star-convex shapes",
+    {"id": 1, "name": "example", "description": "Description for example algorithm",
+     "input_data_format": {"type": "2D image"},
+     "required_parameters": [
+         {"name": "integer_value", "display_name": "Integer value",
+          "description": "Description for integer value", "type": "int", "default_value": 122},
+         {"name": "float_value", "display_name": "Float value",
+          "description": "Description for float value", "type": "float", "default_value": 3.1415},
+         {"name": "string_value", "display_name": "String value",
+          "description": "Description for string value",
+          "type": "string", "default_value": "this_value"},
+         {"name": "boolean_value", "display_name": "Test boolean",
+          "description": "Test test", "type": "bool", "default_value": True},
+         {"name": "choices", "display_name": "Choices",
+          "description": "Description for choices",
+          "type": "list", "values": ["Option A", "Option B"]}
+     ],
+     "output_endpoints": ["image"]
+     },
+    {"id": 2, "name": "stardist", "description": "Object detection with star-convex shapes",
      "input_data_format": {"type": "2D image"},
      "required_parameters": [
          {"name": "model_name", "display_name": "Model",
