@@ -2,6 +2,7 @@ import geojson
 import numpy as np
 from geojson import Feature
 from geojson import Polygon as geojson_polygon
+from scipy.spatial import Delaunay
 from skimage import measure
 
 
@@ -49,3 +50,19 @@ def _mask_to_geometry(mask: np.ndarray) -> geojson.Polygon:
     contour -= 1  # reset padding
     contour_as_numpy = contour[:, np.argsort([1, 0])]  # sort for correct x-y convention
     return geojson_polygon([contour_as_numpy.tolist()])
+
+
+def get_triangulation_features(points: np.ndarray) -> [geojson.Feature]:
+    """
+    Compute the Delaunay triangulation from the input points (e.g. coordinates of the centroids of the detected cells),
+    then convert it to features (where each feature is a triangle), and return the list of features
+    """
+    assert points.ndim == 2, "Excepting 2D array for input coordinates"
+    tri = Delaunay(points)
+    features = []
+    for coords in points[tri.simplices]:
+        c = coords.tolist()
+        c.append(coords[0].tolist())  # to get a closed contour
+        geom = geojson_polygon([c])
+        features.append(Feature(geometry=geom))
+    return features
