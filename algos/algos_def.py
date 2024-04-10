@@ -1,6 +1,6 @@
 AVAILABLE_ALGOS = [
     {"id": 1, "name": "stardist", "description": "Object detection with star-convex shapes",
-     "input_data_format": {"type": "2D image", "ndim": 2},
+     "input_data_format": {"type": "2D image"},
      "required_parameters": [
          {"name": "model_name", "display_name": "Model",
           "description": "Pretrained stardist model name",
