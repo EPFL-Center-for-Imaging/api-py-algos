@@ -1,11 +1,11 @@
 import warnings
 
 import numpy as np
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, status, Request
 from pydantic import BaseModel
 
 from algos import (AVAILABLE_ALGOS, get_required_algo_params, get_algo_info, get_algo_method)
-from app.encoding import encode_image, decode_image
+from app.encoding import encode_image, decode_image, decode_image_bytes
 
 app = FastAPI(title="Python algos app",
               version="0.1.0")
@@ -210,6 +210,21 @@ async def send_image(image: ImageData):
         print(str(e))
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     return {"image_data_size": image.data.__sizeof__()}
+
+
+@app.post("/image_bytes", status_code=status.HTTP_201_CREATED)
+async def send_image_bytes(request: Request):
+    data = await request.body()
+    try:
+        server_data.image_array = decode_image_bytes(data)
+    except ValueError as ve:
+        raise HTTPException(status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, detail=str(ve))
+    except Exception as e:
+        # Generic exception returns a Bad Request response (implying that the client should modify its request)
+        # with the exception in the body of the response
+        print(str(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    return {"data_size": data.__sizeof__()}
 
 
 @app.get("/image/{algo_name}/result/image")

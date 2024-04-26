@@ -8,6 +8,13 @@ from PIL import Image
 Image.MAX_IMAGE_PIXELS = None
 
 
+def decode_image_bytes(data: bytes) -> np.ndarray or None:
+    """
+    Decode an encoded image as bytes into a np.ndarray
+    """
+    return np.array(Image.open(io.BytesIO(data)))
+
+
 def decode_image(b64data: str) -> np.ndarray or None:
     """
     Decode a Base64 encoded string into a np.ndarray
@@ -15,7 +22,7 @@ def decode_image(b64data: str) -> np.ndarray or None:
     """
     if b64data is None:
         return None
-    return np.array(Image.open(io.BytesIO(base64.b64decode(b64data))))
+    return decode_image_bytes(base64.b64decode(b64data))
 
 
 def encode_image(data: np.ndarray) -> str:
