@@ -33,5 +33,5 @@ def encode_image(data: np.ndarray) -> str:
         return ''
     img = Image.fromarray(data)
     img_byte_arr = io.BytesIO()
-    img.save(img_byte_arr, "PNG")
+    img.save(img_byte_arr, "TIFF")
     return base64.b64encode(img_byte_arr.getvalue()).decode()
