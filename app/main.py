@@ -135,8 +135,9 @@ def _check_algo_params(algo_name: str, input_algo_params: {}) -> bool:
     rqd_algo_params_names = [param.get("name") for param in rqd_algo_params]
     if not input_algo_params:
         return False
+    input_algo_params_names = list(input_algo_params.keys())
     for param_name in rqd_algo_params_names:
-        if not input_algo_params.get(param_name):
+        if param_name not in input_algo_params_names:
             return False
     return True
 
@@ -147,7 +148,7 @@ def _run_algo(algo_method, data: np.ndarray, **algo_parameters) -> {}:
 
 
 @app.get("/algos_names/")
-def read_algos_names() -> {}:
+def get_available_algos() -> {}:
     """ Get the available algo names"""
     return {'algos_names': available_algo_names}
 
@@ -176,6 +177,7 @@ def process_data(algo_name: str):
     the algo parameters should be set) """
     if algo_name not in available_algo_names:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Algorithm {algo_name} not found")
+    server_data.selected_algo_name = algo_name
     algo_method = get_algo_method(server_data.selected_algo_name)
     if algo_method is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
