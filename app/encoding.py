@@ -27,7 +27,7 @@ def decode_image(b64data: str) -> np.ndarray or None:
 
 def encode_image(data: np.ndarray) -> str:
     """
-    Encode a np.ndarray into a Base64 encoded string
+    Encode a np.ndarray into a Base64 encoded string (using the TIFF format)
     """
     if data is None:
         return ''
