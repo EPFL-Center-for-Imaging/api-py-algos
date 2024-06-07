@@ -43,8 +43,8 @@ To do so:
 1. Implement a new algorithm in the algos package. Encapsulate it into a single function, taking as input an image 
     (`np.ndarray`) and `kwargs`.
    The return type should be a dictionary with the keys matching available endpoints, e.g. the ```run_stardist()```
-   method return a dictionary with `mask` and  `features` keys, which the client can get from
-   */image/stardist/result/mask*
+   method return a dictionary with `image` and  `features` keys, which the client can get from
+   */image/stardist/result/image*
    and */image/stardist/result/features*, respectively.
 2. To add info visible to the client about the implemented algorithm, add a new entry in the algos/algo_def.py. The entry
    should contain:

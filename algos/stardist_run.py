@@ -45,4 +45,4 @@ def run_stardist(data: np.ndarray, **kwargs) -> {}:
         # Can add measurements in QuPath similarly to the "Detection probability" (values should be a number - not a string)
         # Can set a classification in QuPath by adding a "Classification" key with a string value (can be "Positive"/"Negative"/"1+"/"2+"/"3+" or anything else)
 
-    return {"mask": labels, "features": features}
+    return {"image": labels, "features": features}

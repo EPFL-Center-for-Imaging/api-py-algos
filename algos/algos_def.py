@@ -21,7 +21,7 @@ AVAILABLE_ALGOS = [
           "description": "Amount of guaranteed overlap between tiles (All predicted object instances should be smaller than this value!)",
           "type": "int", "default_value": 128}
      ],
-     "output_endpoints": ["mask", "features"]
+     "output_endpoints": ["image", "features"]
      }
 ]
 
