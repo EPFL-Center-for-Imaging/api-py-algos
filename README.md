@@ -5,7 +5,7 @@
 The API Python algos is a Python API that aims to enable users access to Python-based image processing algorithms
 from other software.
 In particular, the API can be used to run Python-based image processing algorithms in QuPath with the extension
-[qupath-extension-pyalgos](https://github.com/EPFL-Center-for-Imaging/qupath-extension-pyalogs),
+[qupath-extension-pyalgos](https://github.com/EPFL-Center-for-Imaging/qupath-extension-pyalgos),
 and in Fiji with the plugin [ij-plugin-pyalgos](https://github.com/EPFL-Center-for-Imaging/ij-plugin-pyalgos).
 
 ## Setup
@@ -27,7 +27,7 @@ Once the server is launched, there is an interactive API doc available on http:/
 ## Algorithms
 
 The image processing algorithms should take as input an image (`numpy.ndarray`) and a set of parameters (`**kwargs`).
-The output is a dictionary, where the keys match specfic endpoints to access the result in the API, mainly "image"
+The output is a dictionary, where the keys match specific endpoints to access the result in the API, mainly "image"
 and/or "features".
 In the Fiji plugin, it is the resulting image that is displayed, in the QuPath extension, it is the resulting features (
 with associated measurements and classifications)
@@ -42,9 +42,9 @@ It shows the different types of parameters that can be used, and all the availab
 
 #### stardist
 
-An algorithm is implemented as an example: *[Stardist](https://github.com/stardist/stardist) - Object Detection with
-Star-convex Shapes*.
-The outputs of the algorithm consist in the segmentation mask and a list of the geojson.Feature for each detected
+*[Stardist](https://github.com/stardist/stardist) - Object Detection with
+Star-convex Shapes* - is also implemented as an example.
+The outputs of the algorithm consist in the segmentation mask and a list of the `geojson.Feature` for each detected
 object.
 Using the Fiji plug-in, the mask is displayed in a new window in Fiji.
 Using the QuPath extension, the features are displayed as detection objects on the input image in QuPath.
